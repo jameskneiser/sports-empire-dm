@@ -20,6 +20,15 @@ const server = http.createServer(app);
 let masterAiEnabled = process.env.MASTER_AI_ENABLED === 'true';
 function isMasterEnabled() { return masterAiEnabled; }
 
+// Effective AI state for a conversation:
+//   aiEnabled=null  → follow global (masterAiEnabled)
+//   aiEnabled=true  → forced ON regardless of global
+//   aiEnabled=false → forced OFF regardless of global
+function isAiActive(convo) {
+  if (convo.aiEnabled !== null && convo.aiEnabled !== undefined) return convo.aiEnabled;
+  return masterAiEnabled;
+}
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -110,16 +119,13 @@ async function handleInboundMessage(senderId, messageText) {
   // Broadcast inbound message
   ws.broadcastUpdate(senderId);
 
-  // Check master AI kill switch
-  if (!isMasterEnabled()) {
-    console.log(`[pipeline] MASTER_AI_ENABLED=false — logged message, no response sent`);
-    return;
-  }
-
-  // Check if AI is paused for this conversation
+  // Check effective AI state (global + per-convo override)
   const fresh = storage.get(senderId);
-  if (fresh.aiPaused) {
-    console.log(`[pipeline] AI paused for ${senderId} — skipping`);
+  if (!isAiActive(fresh)) {
+    const reason = fresh.aiEnabled === false ? 'individually paused'
+      : !masterAiEnabled ? 'master AI is OFF'
+      : 'unknown';
+    console.log(`[pipeline] AI inactive for ${senderId} (${reason}) — logged, no response sent`);
     return;
   }
 
@@ -220,29 +226,34 @@ app.get('/api/conversations', (req, res) => {
   });
 });
 
-// Toggle AI pause for a conversation
+// Toggle AI for a single conversation (smart override logic)
 app.post('/api/pause/:senderId', (req, res) => {
   const { senderId } = req.params;
   const convo = storage.get(senderId);
   if (!convo) return res.status(404).json({ error: 'Conversation not found' });
 
-  const newState = !convo.aiPaused;
-  storage.update(senderId, { aiPaused: newState });
+  const effectiveOn = isAiActive(convo);
+
+  // If turning OFF: set explicit false when global=ON, clear override when global=OFF (was forced-on)
+  // If turning ON:  set explicit true  when global=OFF, clear override when global=ON (was forced-off)
+  const newAiEnabled = effectiveOn
+    ? (masterAiEnabled ? false : null)
+    : (masterAiEnabled ? null  : true);
+
+  storage.update(senderId, { aiEnabled: newAiEnabled });
   ws.broadcastUpdate(senderId);
 
-  res.json({ senderId, aiPaused: newState });
+  const newEffective = isAiActive(storage.get(senderId));
+  res.json({ senderId, aiEnabled: newAiEnabled, effectiveAiOn: newEffective, masterAiEnabled });
 });
 
-// Pause all conversations
+// Pause all — sets master AI off (individual overrides are preserved)
 app.post('/api/pause-all', (req, res) => {
   const { pause } = req.body;
-  if (pause === false) {
-    storage.unpauseAll();
-  } else {
-    storage.pauseAll();
-  }
-  ws.broadcastAll();
-  res.json({ success: true, paused: pause !== false });
+  masterAiEnabled = pause === false ? true : false;
+  console.log(`[master] pause-all set masterAiEnabled=${masterAiEnabled}`);
+  ws.broadcast('master-ai', { masterAiEnabled });
+  res.json({ success: true, masterAiEnabled });
 });
 
 // Manually send a message as James
@@ -366,19 +377,27 @@ app.get('/api/stats', (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log('');
-  console.log('╔═══════════════════════════════════════════════════╗');
-  console.log('║         SPORTS EMPIRE DM AUTOMATION               ║');
-  console.log('╠═══════════════════════════════════════════════════╣');
-  console.log(`║  Server:    http://localhost:${PORT}                  ║`);
-  console.log(`║  Dashboard: http://localhost:${PORT}/dashboard         ║`);
-  console.log(`║  Webhook:   http://localhost:${PORT}/webhook           ║`);
-  console.log('╠═══════════════════════════════════════════════════╣');
-  console.log(`║  Verify Token: ${process.env.META_VERIFY_TOKEN}  ║`);
-  console.log('╚═══════════════════════════════════════════════════╝');
-  console.log('');
-  console.log('Run: npx localtunnel --port 3000');
-  console.log('Then register webhook URL in Meta Developer Portal');
-  console.log('');
-});
+
+async function start() {
+  // Exchange short-lived token before accepting any traffic
+  await meta.exchangeToken();
+
+  server.listen(PORT, () => {
+    console.log('');
+    console.log('╔═══════════════════════════════════════════════════╗');
+    console.log('║         SPORTS EMPIRE DM AUTOMATION               ║');
+    console.log('╠═══════════════════════════════════════════════════╣');
+    console.log(`║  Server:    http://localhost:${PORT}                  ║`);
+    console.log(`║  Dashboard: http://localhost:${PORT}/dashboard         ║`);
+    console.log(`║  Webhook:   http://localhost:${PORT}/webhook           ║`);
+    console.log('╠═══════════════════════════════════════════════════╣');
+    console.log(`║  Verify Token: ${process.env.META_VERIFY_TOKEN}  ║`);
+    console.log('╚═══════════════════════════════════════════════════╝');
+    console.log('');
+    console.log('Run: npx localtunnel --port 3000');
+    console.log('Then register webhook URL in Meta Developer Portal');
+    console.log('');
+  });
+}
+
+start();

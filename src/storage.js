@@ -9,7 +9,15 @@ function loadAll() {
   try {
     if (fs.existsSync(DATA_FILE)) {
       const raw = fs.readFileSync(DATA_FILE, 'utf8');
-      return JSON.parse(raw);
+      const data = JSON.parse(raw);
+      // Migrate legacy aiPaused field to aiEnabled
+      for (const convo of Object.values(data)) {
+        if (convo.aiEnabled === undefined) {
+          convo.aiEnabled = convo.aiPaused === true ? false : null;
+          delete convo.aiPaused;
+        }
+      }
+      return data;
     }
   } catch (e) {
     console.error('[storage] Failed to load conversations:', e.message);
@@ -38,7 +46,8 @@ function getOrCreate(senderId) {
       handle: null,
       stage: 'welcome',
       qualified: null,
-      aiPaused: false,
+      // null = follow global, true = forced on, false = forced off
+      aiEnabled: null,
       messages: [],
       voiceMemoSent: false,
       callBooked: false,
@@ -78,16 +87,10 @@ function getAll() {
   return store;
 }
 
-function pauseAll() {
+// Clear all individual overrides (used when global state changes and you want a clean slate)
+function clearAllOverrides() {
   Object.keys(store).forEach((id) => {
-    store[id].aiPaused = true;
-  });
-  saveAll(store);
-}
-
-function unpauseAll() {
-  Object.keys(store).forEach((id) => {
-    store[id].aiPaused = false;
+    store[id].aiEnabled = null;
   });
   saveAll(store);
 }
@@ -106,7 +109,6 @@ function getStats() {
   const callsBooked = convos.filter((c) => c.callBooked).length;
   const disqualified = convos.filter((c) => c.stage === 'disqualified').length;
   const voiceMemosSent = convos.filter((c) => c.voiceMemoSent).length;
-  const aiPaused = convos.filter((c) => c.aiPaused).length;
   const activeLeads = convos.filter(
     (c) => c.stage !== 'disqualified' && !c.callBooked,
   ).length;
@@ -115,6 +117,10 @@ function getStats() {
   const conversionRate =
     convos.length > 0 ? Math.round((callsBooked / convos.length) * 100) : 0;
 
+  // Override counts: how many convos are individually overriding the global default
+  const aiOverrideOnCount  = convos.filter((c) => c.aiEnabled === true).length;  // forced on (global=OFF)
+  const aiOverrideOffCount = convos.filter((c) => c.aiEnabled === false).length; // forced off (global=ON)
+
   return {
     activeLeads,
     qualifiedToday,
@@ -122,10 +128,11 @@ function getStats() {
     disqualified,
     voiceMemosSent,
     conversionRate,
-    aiPausedCount: aiPaused,
+    aiOverrideOnCount,
+    aiOverrideOffCount,
     totalLeads: convos.length,
     totalQualified,
   };
 }
 
-module.exports = { get, getOrCreate, update, addMessage, getAll, pauseAll, unpauseAll, getStats };
+module.exports = { get, getOrCreate, update, addMessage, getAll, clearAllOverrides, getStats };

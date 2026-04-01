@@ -1,0 +1,23 @@
+{
+  "TEST123": {
+    "senderId": "TEST123",
+    "handle": null,
+    "stage": "welcome",
+    "qualified": null,
+    "aiEnabled": null,
+    "messages": [
+      {
+        "role": "user",
+        "content": "SYSTEM",
+        "timestamp": "2026-04-01T04:52:41.652Z"
+      }
+    ],
+    "voiceMemoSent": false,
+    "callBooked": false,
+    "lastMessageAt": "2026-04-01T04:52:41.652Z",
+    "createdAt": "2026-04-01T04:52:41.470Z",
+    "rating": null,
+    "disqualifiedAt": null,
+    "bookedAt": null
+  }
+}

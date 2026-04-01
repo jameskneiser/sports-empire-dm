@@ -470,6 +470,9 @@
   .badge-paused    { background: #f3f4f6; color: #4b5563; }
   .badge-booked    { background: var(--accent-bg); color: var(--accent); }
   .badge-hot       { background: #fff7ed; color: #c2410c; }
+  /* Override badges — shown when a convo deviates from global default */
+  .badge-override-on  { background: #f0faf4; color: var(--accent); border: 1px solid #86efac; }
+  .badge-override-off { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
 
   /* ── Chat area ── */
   .chat-area {
@@ -505,16 +508,24 @@
   }
 
   .paused-banner {
-    background: #fffbeb;
     border-bottom: 1px solid #fde68a;
     padding: 9px 20px;
     font-size: 12.5px;
     font-weight: 500;
-    color: #92400e;
     display: flex;
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
+  }
+  .paused-banner.reason-individual {
+    background: #fffbeb;
+    color: #92400e;
+    border-color: #fde68a;
+  }
+  .paused-banner.reason-global {
+    background: #fef2f2;
+    color: #991b1b;
+    border-color: #fca5a5;
   }
 
   .paused-banner svg { flex-shrink: 0; }
@@ -1161,7 +1172,7 @@
     <span class="ticker-value green" id="t-conv">—</span>
   </div>
   <div class="ticker-item">
-    <span class="ticker-label">AI Paused</span>
+    <span class="ticker-label" id="t-override-label">Overrides</span>
     <span class="ticker-value warn" id="t-paused">—</span>
   </div>
 </div>
@@ -1452,7 +1463,14 @@ function renderTicker() {
   document.getElementById('t-disq').textContent = stats.disqualified ?? '—';
   document.getElementById('t-voice').textContent = stats.voiceMemosSent ?? '—';
   document.getElementById('t-conv').textContent = stats.conversionRate != null ? stats.conversionRate + '%' : '—';
-  document.getElementById('t-paused').textContent = stats.aiPausedCount ?? '—';
+  // Show override count contextually: when global ON show forced-off; when global OFF show forced-on
+  if (masterAiEnabled) {
+    document.getElementById('t-override-label').textContent = 'Indiv. Paused';
+    document.getElementById('t-paused').textContent = stats.aiOverrideOffCount ?? '—';
+  } else {
+    document.getElementById('t-override-label').textContent = 'Indiv. Enabled';
+    document.getElementById('t-paused').textContent = stats.aiOverrideOnCount ?? '—';
+  }
 }
 
 function renderSidebar() {
@@ -1487,7 +1505,8 @@ function renderSidebar() {
 
     const tags = [];
     tags.push(stageBadge(c.stage));
-    if (c.aiPaused) tags.push(`<span class="badge badge-paused">Paused</span>`);
+    if (c.aiEnabled === false) tags.push(`<span class="badge badge-override-off">⏸ Paused</span>`);
+    if (c.aiEnabled === true)  tags.push(`<span class="badge badge-override-on">▶ AI On</span>`);
     if (c.callBooked) tags.push(`<span class="badge badge-booked">✓ Booked</span>`);
     if (c.voiceMemoSent) tags.push(`<span class="badge" style="background:#f5f3ff;color:#7c3aed">🎤</span>`);
 
@@ -1516,15 +1535,38 @@ function renderChat(senderId) {
 
   const chatArea = document.getElementById('chat-area');
   const name = convo.handle || convo.name || senderId;
-  const isPaused = convo.aiPaused;
 
-  const pausedBanner = isPaused ? `
-    <div class="paused-banner">
+  // Effective AI state for this conversation
+  const effectiveAiOn = convo.aiEnabled !== null && convo.aiEnabled !== undefined
+    ? convo.aiEnabled
+    : masterAiEnabled;
+  const isOverridden = convo.aiEnabled !== null && convo.aiEnabled !== undefined;
+  const isOverrideOn  = isOverridden && convo.aiEnabled === true;
+  const isOverrideOff = isOverridden && convo.aiEnabled === false;
+
+  // Paused banner: shown when AI is off, colour indicates whether it's global or individual
+  let pausedBanner = '';
+  if (!effectiveAiOn) {
+    const isGlobalReason = !masterAiEnabled && !isOverrideOn;
+    pausedBanner = `
+    <div class="paused-banner ${isGlobalReason ? 'reason-global' : 'reason-individual'}">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
       </svg>
-      AI is paused for this conversation. You're in manual mode.
-    </div>` : '';
+      ${isGlobalReason
+        ? '<strong>Global AI is OFF.</strong>&nbsp;Enable AI individually for this conversation using the button above.'
+        : '<strong>AI paused for this conversation.</strong>&nbsp;You\'re in manual mode.'}
+    </div>`;
+  }
+
+  // Toggle button label and style
+  const toggleLabel = effectiveAiOn ? '⏸ Pause AI' : (masterAiEnabled ? '▶ Resume AI' : '▶ Enable AI');
+  const toggleClass = effectiveAiOn ? 'btn-outline' : 'btn-warn';
+  const overrideBadge = isOverrideOff
+    ? `<span class="badge badge-override-off" style="margin-left:4px">Indiv. paused</span>`
+    : isOverrideOn
+    ? `<span class="badge badge-override-on" style="margin-left:4px">Indiv. enabled</span>`
+    : '';
 
   const messages = (convo.messages || []).map((msg, i) => {
     const role = msg.role;
@@ -1576,9 +1618,10 @@ function renderChat(senderId) {
       <div class="chat-lead-name">@${escapeHtml(name)}</div>
       ${stageBadge(convo.stage)}
       <div class="chat-actions">
-        <button class="btn ${isPaused ? 'btn-accent' : 'btn-outline'}" onclick="togglePause('${senderId}')">
-          ${isPaused ? '▶ Resume AI' : '⏸ Pause AI'}
-        </button>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="btn ${toggleClass}" onclick="togglePause('${senderId}')">${toggleLabel}</button>
+          ${overrideBadge}
+        </div>
         ${convo.stage !== 'disqualified' ? `<button class="btn btn-danger" onclick="disqualify('${senderId}')">Disqualify</button>` : ''}
         ${!convo.callBooked ? `<button class="btn btn-outline" onclick="bookCall('${senderId}')" style="color:var(--accent);border-color:var(--accent)">✓ Mark Booked</button>` : ''}
       </div>
@@ -1728,7 +1771,12 @@ async function togglePause(senderId) {
   try {
     const res = await fetch(`/api/pause/${senderId}`, { method: 'POST' });
     const data = await res.json();
-    toast(data.aiPaused ? 'AI paused for this conversation' : 'AI resumed', 'success');
+    const on = data.effectiveAiOn;
+    const overridden = data.aiEnabled !== null;
+    const msg = on
+      ? (overridden ? 'AI enabled (individually overriding global)' : 'AI active — following global')
+      : (overridden ? 'AI paused for this conversation' : 'AI off — following global');
+    toast(msg, on ? 'success' : '');
   } catch (e) {
     toast('Error: ' + e.message, 'error');
   }
@@ -1736,8 +1784,15 @@ async function togglePause(senderId) {
 
 async function pauseAll() {
   try {
-    await fetch('/api/pause-all', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pause: true }) });
-    toast('All AI paused', 'success');
+    const res = await fetch('/api/master-ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: false }),
+    });
+    const data = await res.json();
+    masterAiEnabled = data.masterAiEnabled;
+    applyMasterAiUI();
+    toast('Master AI turned OFF — individually enabled convos still active', '');
   } catch (e) {
     toast('Error: ' + e.message, 'error');
   }
@@ -1746,12 +1801,15 @@ async function pauseAll() {
 async function toggleAway(checked) {
   awayMode = checked;
   try {
-    await fetch('/api/pause-all', {
+    const res = await fetch('/api/master-ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pause: checked }),
+      body: JSON.stringify({ enabled: !checked }),
     });
-    toast(checked ? 'Away mode on — AI paused for all' : 'Away mode off — AI resumed', checked ? 'warn' : 'success');
+    const data = await res.json();
+    masterAiEnabled = data.masterAiEnabled;
+    applyMasterAiUI();
+    toast(checked ? 'Away mode on — master AI off' : 'Away mode off — master AI on', checked ? '' : 'success');
   } catch (e) {
     toast('Error: ' + e.message, 'error');
   }
