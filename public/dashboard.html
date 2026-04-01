@@ -1,0 +1,1933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sports Empire — DM Inbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f7f6;
+    --surface: #ffffff;
+    --surface2: #f4f4f3;
+    --border: #e8e8e6;
+    --border2: #d8d8d5;
+    --text: #1a1a18;
+    --text2: #6b6b67;
+    --text3: #9f9f9a;
+    --accent: #18a34a;
+    --accent-bg: #f0faf4;
+    --accent-hover: #15923f;
+    --warn: #d97706;
+    --warn-bg: #fffbeb;
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+    --blue: #2563eb;
+    --blue-bg: #eff6ff;
+    --purple: #7c3aed;
+    --purple-bg: #f5f3ff;
+    --sidebar-w: 300px;
+    --right-w: 300px;
+    --topbar-h: 52px;
+    --ticker-h: 36px;
+    --font-mono: 'Geist Mono', monospace;
+    --font-serif: 'Instrument Serif', Georgia, serif;
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--topbar-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 0;
+    z-index: 100;
+  }
+
+  .topbar-logo {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 17px;
+    color: var(--text);
+    letter-spacing: -0.3px;
+    margin-right: 32px;
+    flex-shrink: 0;
+  }
+
+  .topbar-logo span {
+    font-style: normal;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text3);
+    font-weight: 400;
+    margin-left: 6px;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+  }
+
+  .nav-tab {
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    font-family: var(--font-sans);
+  }
+  .nav-tab:hover { background: var(--surface2); color: var(--text); }
+  .nav-tab.active { background: var(--text); color: #fff; }
+
+  .topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .away-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 34px;
+    height: 20px;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border2);
+    border-radius: 20px;
+    transition: 0.2s;
+    cursor: pointer;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    left: 3px;
+    top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  input:checked + .toggle-slider { background: var(--accent); }
+  input:checked + .toggle-slider::before { transform: translateX(14px); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    font-family: var(--font-sans);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .btn-outline {
+    background: var(--surface);
+    border-color: var(--border2);
+    color: var(--text);
+  }
+  .btn-outline:hover { background: var(--surface2); border-color: var(--border2); }
+
+  .btn-danger {
+    background: var(--danger-bg);
+    border-color: #fca5a5;
+    color: var(--danger);
+  }
+  .btn-danger:hover { background: #fee2e2; }
+
+  .btn-accent {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .btn-accent:hover { background: var(--accent-hover); }
+
+  .btn-warn {
+    background: var(--warn-bg);
+    border-color: #fde68a;
+    color: var(--warn);
+  }
+
+  /* ── Ticker ── */
+  .ticker {
+    position: fixed;
+    top: var(--topbar-h);
+    left: 0; right: 0;
+    height: var(--ticker-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 0;
+    overflow: hidden;
+    z-index: 99;
+  }
+
+  .ticker-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 20px 0 0;
+    margin-right: 20px;
+    border-right: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .ticker-item:last-child { border-right: none; }
+
+  .ticker-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .ticker-value {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .ticker-value.green { color: var(--accent); }
+  .ticker-value.warn { color: var(--warn); }
+  .ticker-value.danger { color: var(--danger); }
+
+  /* ── Layout ── */
+  .layout {
+    position: fixed;
+    top: calc(var(--topbar-h) + var(--ticker-h));
+    left: 0; right: 0; bottom: 0;
+    display: flex;
+  }
+
+  /* ── Tab panels ── */
+  .tab-panel { display: none; width: 100%; height: 100%; }
+  .tab-panel.active { display: flex; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .sidebar-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    margin-bottom: 10px;
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 4px;
+  }
+
+  .filter-tab {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text2);
+    transition: all 0.15s;
+  }
+  .filter-tab:hover { background: var(--surface2); }
+  .filter-tab.active {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+
+  .convo-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 0;
+  }
+
+  .convo-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+    position: relative;
+  }
+  .convo-item:hover { background: var(--surface2); }
+  .convo-item.active { background: var(--accent-bg); }
+  .convo-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+  }
+
+  .convo-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .convo-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e8e8e6, #d0d0cc);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text2);
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+  }
+
+  .convo-info { flex: 1; min-width: 0; }
+
+  .convo-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 3px;
+  }
+
+  .convo-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .convo-time {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text3);
+    flex-shrink: 0;
+  }
+
+  .convo-preview {
+    font-size: 12.5px;
+    color: var(--text2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 5px;
+  }
+
+  .convo-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  /* ── Stage badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    font-family: var(--font-mono);
+  }
+
+  .badge-welcome   { background: #f0f9ff; color: #0369a1; }
+  .badge-discovery { background: #fef9c3; color: #854d0e; }
+  .badge-qualify   { background: var(--warn-bg); color: var(--warn); }
+  .badge-pitch     { background: var(--blue-bg); color: var(--blue); }
+  .badge-book      { background: var(--accent-bg); color: var(--accent); }
+  .badge-disqualified { background: var(--danger-bg); color: var(--danger); }
+  .badge-paused    { background: #f3f4f6; color: #4b5563; }
+  .badge-booked    { background: var(--accent-bg); color: var(--accent); }
+  .badge-hot       { background: #fff7ed; color: #c2410c; }
+
+  /* ── Chat area ── */
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+    min-width: 0;
+  }
+
+  .chat-header {
+    padding: 14px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .chat-lead-name {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 20px;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .chat-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .paused-banner {
+    background: #fffbeb;
+    border-bottom: 1px solid #fde68a;
+    padding: 9px 20px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .paused-banner svg { flex-shrink: 0; }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .msg-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .msg-wrapper.user { align-items: flex-start; }
+  .msg-wrapper.assistant { align-items: flex-end; }
+
+  .msg-bubble {
+    max-width: 72%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    position: relative;
+  }
+
+  .msg-wrapper.user .msg-bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+    color: var(--text);
+  }
+
+  .msg-wrapper.assistant .msg-bubble {
+    background: var(--accent);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+
+  .msg-wrapper.assistant .msg-bubble.manual {
+    background: var(--blue);
+  }
+
+  .msg-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    padding: 0 4px;
+  }
+
+  .msg-time {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  .rating-btns {
+    display: flex;
+    gap: 3px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .msg-wrapper:hover .rating-btns { opacity: 1; }
+
+  .rating-btn {
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--text2);
+    transition: all 0.1s;
+  }
+  .rating-btn:hover { background: var(--surface2); }
+  .rating-btn.rated-up { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+  .rating-btn.rated-down { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+
+  .voice-memo-player {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 280px;
+  }
+
+  .voice-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .voice-label {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .voice-sub {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: var(--font-mono);
+  }
+
+  .chat-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text3);
+    gap: 10px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .chat-empty-icon {
+    font-size: 40px;
+    opacity: 0.5;
+  }
+
+  .chat-empty-title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 20px;
+    color: var(--text2);
+  }
+
+  /* ── Chat Input ── */
+  .chat-input-area {
+    padding: 14px 20px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .chat-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .chat-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: var(--font-sans);
+    background: var(--surface);
+    color: var(--text);
+    resize: none;
+    outline: none;
+    min-height: 42px;
+    max-height: 120px;
+    transition: border-color 0.15s;
+  }
+  .chat-input:focus { border-color: var(--accent); }
+  .chat-input::placeholder { color: var(--text3); }
+
+  /* ── Right panel ── */
+  .right-panel {
+    width: var(--right-w);
+    flex-shrink: 0;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    margin-bottom: 12px;
+  }
+
+  .funnel-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .funnel-row:last-child { border-bottom: none; }
+
+  .funnel-label { color: var(--text2); }
+  .funnel-val {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text);
+    font-size: 13px;
+  }
+
+  .funnel-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .funnel-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .voice-memo-btn {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  /* ── Analytics panel ── */
+  .analytics-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .analytics-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .analytics-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .stat-box {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    border: 1px solid var(--border);
+  }
+
+  .stat-box-val {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-box-label {
+    font-size: 11.5px;
+    color: var(--text3);
+    font-weight: 500;
+  }
+
+  .funnel-stages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .funnel-stage-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .funnel-stage-name {
+    font-size: 12px;
+    color: var(--text2);
+    width: 90px;
+    flex-shrink: 0;
+  }
+
+  .funnel-stage-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .funnel-stage-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  .funnel-stage-count {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    width: 24px;
+    text-align: right;
+  }
+
+  /* ── Training panel ── */
+  .training-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .training-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+
+  .training-response {
+    margin-bottom: 16px;
+  }
+
+  .training-convo-header {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: var(--font-mono);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .training-msg {
+    font-size: 13.5px;
+    color: var(--text);
+    line-height: 1.5;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+
+  .training-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .custom-rules-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    color: var(--text);
+    background: var(--surface);
+    resize: vertical;
+    min-height: 100px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .custom-rules-textarea:focus { border-color: var(--accent); }
+
+  /* ── Settings panel ── */
+  .settings-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  .settings-form {
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .form-hint {
+    font-size: 11.5px;
+    color: var(--text3);
+  }
+
+  .form-input {
+    padding: 9px 12px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    font-family: var(--font-sans);
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .settings-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 4px 0;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+
+  .toggle-row-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #c4c4bf; }
+
+  /* ── Toast ── */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+  }
+
+  .toast {
+    padding: 10px 16px;
+    background: var(--text);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    animation: toastIn 0.2s ease;
+    box-shadow: var(--shadow-md);
+  }
+
+  .toast.success { background: var(--accent); }
+  .toast.error { background: var(--danger); }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Connection status ── */
+  .conn-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  .conn-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border2);
+  }
+  .conn-dot.connected { background: var(--accent); }
+  .conn-dot.error { background: var(--danger); }
+
+  /* ── Master AI toggle ── */
+  .master-ai-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .master-ai-toggle.enabled {
+    border-color: #86efac;
+    background: var(--accent-bg);
+  }
+  .master-ai-toggle.enabled .master-ai-label { color: var(--accent); }
+
+  .master-ai-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text2);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    user-select: none;
+  }
+
+  /* ── Global AI-disabled banner ── */
+  .master-disabled-banner {
+    display: none;
+    position: fixed;
+    top: calc(var(--topbar-h) + var(--ticker-h));
+    left: 0; right: 0;
+    background: #fffbeb;
+    border-bottom: 1px solid #fde68a;
+    padding: 9px 20px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #92400e;
+    z-index: 98;
+    align-items: center;
+    gap: 8px;
+  }
+  .master-disabled-banner.visible { display: flex; }
+
+  /* shift layout down when banner shows */
+  .layout.banner-visible {
+    top: calc(var(--topbar-h) + var(--ticker-h) + 37px);
+  }
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-logo">Sports Empire <span>AI Inbox</span></div>
+
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('inbox')">Inbox</button>
+    <button class="nav-tab" onclick="switchTab('analytics')">Analytics</button>
+    <button class="nav-tab" onclick="switchTab('training')">Training</button>
+    <button class="nav-tab" onclick="switchTab('settings')">Settings</button>
+  </nav>
+
+  <div class="topbar-right">
+    <div class="conn-status">
+      <div class="conn-dot" id="conn-dot"></div>
+      <span id="conn-label">Connecting...</span>
+    </div>
+
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      LIVE
+    </div>
+
+    <label class="away-toggle" title="Away Mode — pauses all AI responses">
+      <label class="toggle-switch">
+        <input type="checkbox" id="away-toggle" onchange="toggleAway(this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+      Away
+    </label>
+
+    <div id="master-ai-btn" class="master-ai-toggle" onclick="toggleMasterAi()" title="Master AI switch — when OFF, all DMs are logged but no responses are sent">
+      <label class="toggle-switch" style="pointer-events:none">
+        <input type="checkbox" id="master-ai-checkbox">
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="master-ai-label" id="master-ai-label">AI OFF</span>
+    </div>
+
+    <button class="btn btn-danger" onclick="pauseAll()">⏸ Pause All AI</button>
+  </div>
+</div>
+
+<!-- Master AI disabled banner -->
+<div class="master-disabled-banner" id="master-disabled-banner">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+  <strong>AI is OFF.</strong>&nbsp;Incoming DMs are being logged but no responses are being sent. Flip the AI toggle to go live.
+</div>
+
+<!-- Ticker -->
+<div class="ticker">
+  <div class="ticker-item">
+    <span class="ticker-label">Active</span>
+    <span class="ticker-value" id="t-active">—</span>
+  </div>
+  <div class="ticker-item">
+    <span class="ticker-label">Qual Today</span>
+    <span class="ticker-value green" id="t-qual">—</span>
+  </div>
+  <div class="ticker-item">
+    <span class="ticker-label">Calls Booked</span>
+    <span class="ticker-value green" id="t-booked">—</span>
+  </div>
+  <div class="ticker-item">
+    <span class="ticker-label">Disqualified</span>
+    <span class="ticker-value danger" id="t-disq">—</span>
+  </div>
+  <div class="ticker-item">
+    <span class="ticker-label">Voice Memos</span>
+    <span class="ticker-value" id="t-voice">—</span>
+  </div>
+  <div class="ticker-item">
+    <span class="ticker-label">Conv Rate</span>
+    <span class="ticker-value green" id="t-conv">—</span>
+  </div>
+  <div class="ticker-item">
+    <span class="ticker-label">AI Paused</span>
+    <span class="ticker-value warn" id="t-paused">—</span>
+  </div>
+</div>
+
+<!-- Main layout -->
+<div class="layout">
+
+  <!-- INBOX TAB -->
+  <div class="tab-panel active" id="panel-inbox">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">Conversations</div>
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="setFilter('all', this)">All</button>
+          <button class="filter-tab" onclick="setFilter('hot', this)">Hot</button>
+          <button class="filter-tab" onclick="setFilter('qualified', this)">Qual</button>
+          <button class="filter-tab" onclick="setFilter('disqualified', this)">Disq</button>
+        </div>
+      </div>
+      <div class="convo-list" id="convo-list">
+        <div style="padding: 24px 16px; color: var(--text3); font-size: 13px; text-align: center;">
+          Waiting for conversations...
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat area -->
+    <div class="chat-area" id="chat-area">
+      <div class="chat-empty">
+        <div class="chat-empty-icon">💬</div>
+        <div class="chat-empty-title">Select a conversation</div>
+        <div style="font-size: 13px; color: var(--text3);">Choose a lead from the left to view the thread</div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel" id="right-panel">
+      <div class="panel-section">
+        <div class="panel-section-title">Pipeline Funnel</div>
+        <div id="funnel-display">
+          <div style="color: var(--text3); font-size: 12.5px;">Select a lead to view details</div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="panel-section-title">Conversion</div>
+        <div class="funnel-row">
+          <span class="funnel-label">Total Leads</span>
+          <span class="funnel-val" id="rp-total">—</span>
+        </div>
+        <div class="funnel-row">
+          <span class="funnel-label">Qualified</span>
+          <span class="funnel-val" id="rp-qualified">—</span>
+        </div>
+        <div class="funnel-row">
+          <span class="funnel-label">Calls Booked</span>
+          <span class="funnel-val" id="rp-booked">—</span>
+        </div>
+        <div class="funnel-row">
+          <span class="funnel-label">Conversion Rate</span>
+          <span class="funnel-val" id="rp-rate">—</span>
+        </div>
+      </div>
+      <div class="panel-section" id="train-panel">
+        <div class="panel-section-title">Train AI</div>
+        <div style="color: var(--text3); font-size: 12.5px;">Rate AI responses to improve the system prompt.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ANALYTICS TAB -->
+  <div class="tab-panel" id="panel-analytics">
+    <div class="analytics-panel">
+
+      <div class="analytics-card">
+        <div class="analytics-card-title">📊 Overview</div>
+        <div class="stat-grid" id="analytics-stat-grid">
+          <div class="stat-box">
+            <div class="stat-box-val" id="an-total">—</div>
+            <div class="stat-box-label">Total Leads</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-box-val" id="an-booked">—</div>
+            <div class="stat-box-label">Calls Booked</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-box-val" id="an-qual">—</div>
+            <div class="stat-box-label">Qualified</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-box-val" id="an-conv">—</div>
+            <div class="stat-box-label">Conv Rate</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="analytics-card">
+        <div class="analytics-card-title">🔽 Conversion Funnel</div>
+        <div class="funnel-stages" id="analytics-funnel">
+          <div style="color: var(--text3); font-size: 13px;">Loading...</div>
+        </div>
+      </div>
+
+      <div class="analytics-card">
+        <div class="analytics-card-title">⚡ Disqualification Reasons</div>
+        <div id="disq-reasons" style="color: var(--text3); font-size: 13px;">No disqualified leads yet.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TRAINING TAB -->
+  <div class="tab-panel" id="panel-training">
+    <div class="training-panel">
+
+      <div class="training-card">
+        <div class="panel-section-title" style="margin-bottom: 12px;">Custom Rules</div>
+        <div style="font-size: 12.5px; color: var(--text3); margin-bottom: 10px;">
+          These rules are injected directly into the AI system prompt. Use plain English.
+        </div>
+        <textarea class="custom-rules-textarea" id="custom-rules-input" placeholder="e.g. Always ask about their current bookie before asking about bankroll size.&#10;If someone mentions their wife handles finances, acknowledge that and ask if they need to discuss with her first."></textarea>
+        <div style="margin-top: 10px; display: flex; gap: 8px;">
+          <button class="btn btn-accent" onclick="saveCustomRules()">Save Rules</button>
+        </div>
+      </div>
+
+      <div class="training-card">
+        <div class="panel-section-title" style="margin-bottom: 12px;">Rate AI Responses</div>
+        <div style="font-size: 12.5px; color: var(--text3); margin-bottom: 14px;">
+          Thumbs up on responses James would send. Thumbs down on ones that miss the mark.
+        </div>
+        <div id="training-responses">
+          <div style="color: var(--text3); font-size: 13px;">Select a conversation in the Inbox to rate responses.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div class="tab-panel" id="panel-settings">
+    <div class="settings-panel">
+      <div class="settings-form" id="settings-form">
+
+        <div style="margin-bottom: 4px;">
+          <div style="font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--text);">Playbook Settings</div>
+          <div style="font-size: 13px; color: var(--text3); margin-top: 4px;">Configure how the AI qualifies and responds to leads.</div>
+        </div>
+
+        <hr class="settings-divider" />
+
+        <div class="form-group">
+          <label class="form-label">Calendly Link</label>
+          <span class="form-hint">Sent when booking a strategy call with James.</span>
+          <input type="url" class="form-input" id="s-calendly" placeholder="https://calendly.com/..." />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Minimum Bankroll ($)</label>
+          <span class="form-hint">Leads below this amount are disqualified.</span>
+          <input type="number" class="form-input" id="s-bankroll" placeholder="5000" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Disqualification Triggers</label>
+          <span class="form-hint">Comma-separated keywords. If a lead mentions any of these, disqualify.</span>
+          <textarea class="form-input form-textarea" id="s-disq-triggers" placeholder="guaranteed wins, 100% winners, guarantee, free picks..."></textarea>
+        </div>
+
+        <hr class="settings-divider" />
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label">Voice Memos</div>
+            <div class="form-hint">Generate and send ElevenLabs voice memos during conversations.</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="s-voice-toggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <hr class="settings-divider" />
+
+        <div>
+          <button class="btn btn-accent" onclick="saveSettings()">Save Settings</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let conversations = {};
+let stats = {};
+let activeConvoId = null;
+let currentFilter = 'all';
+let ws = null;
+let reconnectTimer = null;
+let awayMode = false;
+let masterAiEnabled = false;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WEBSOCKET
+// ─────────────────────────────────────────────────────────────────────────────
+function connectWS() {
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${protocol}//${location.host}`);
+
+  ws.onopen = () => {
+    setConnStatus(true);
+    clearTimeout(reconnectTimer);
+    console.log('[ws] Connected');
+  };
+
+  ws.onclose = () => {
+    setConnStatus(false);
+    console.log('[ws] Disconnected — reconnecting in 3s');
+    reconnectTimer = setTimeout(connectWS, 3000);
+  };
+
+  ws.onerror = (err) => {
+    console.error('[ws] Error:', err);
+    setConnStatus(false, true);
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      if (msg.type === 'snapshot') {
+        conversations = msg.conversations || {};
+        stats = msg.stats || {};
+        if (typeof msg.masterAiEnabled === 'boolean') {
+          masterAiEnabled = msg.masterAiEnabled;
+          applyMasterAiUI();
+        }
+        render();
+      } else if (msg.type === 'update') {
+        if (msg.conversation) {
+          conversations[msg.conversation.senderId] = msg.conversation;
+        }
+        if (msg.stats) stats = msg.stats;
+        render();
+      } else if (msg.type === 'master-ai') {
+        masterAiEnabled = msg.masterAiEnabled;
+        applyMasterAiUI();
+      }
+    } catch (e) {
+      console.error('[ws] Parse error:', e);
+    }
+  };
+}
+
+function setConnStatus(connected, error = false) {
+  const dot = document.getElementById('conn-dot');
+  const label = document.getElementById('conn-label');
+  dot.className = `conn-dot ${connected ? 'connected' : error ? 'error' : ''}`;
+  label.textContent = connected ? 'Connected' : error ? 'Error' : 'Reconnecting...';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────────────────────────────
+function render() {
+  renderTicker();
+  renderSidebar();
+  if (activeConvoId && conversations[activeConvoId]) {
+    renderChat(activeConvoId);
+  }
+  renderRightPanel();
+  renderAnalytics();
+}
+
+function renderTicker() {
+  document.getElementById('t-active').textContent = stats.activeLeads ?? '—';
+  document.getElementById('t-qual').textContent = stats.qualifiedToday ?? '—';
+  document.getElementById('t-booked').textContent = stats.callsBooked ?? '—';
+  document.getElementById('t-disq').textContent = stats.disqualified ?? '—';
+  document.getElementById('t-voice').textContent = stats.voiceMemosSent ?? '—';
+  document.getElementById('t-conv').textContent = stats.conversionRate != null ? stats.conversionRate + '%' : '—';
+  document.getElementById('t-paused').textContent = stats.aiPausedCount ?? '—';
+}
+
+function renderSidebar() {
+  const list = document.getElementById('convo-list');
+  const convos = Object.values(conversations);
+
+  const filtered = convos.filter((c) => {
+    if (currentFilter === 'all') return true;
+    if (currentFilter === 'hot') return c.stage === 'pitch' || c.stage === 'discover' || c.stage === 'qualify';
+    if (currentFilter === 'qualified') return c.qualified === true;
+    if (currentFilter === 'disqualified') return c.stage === 'disqualified';
+    return true;
+  });
+
+  // Sort by lastMessageAt desc
+  filtered.sort((a, b) => {
+    const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+    const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+    return tb - ta;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="padding: 24px 16px; color: var(--text3); font-size: 13px; text-align: center;">No conversations</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map((c) => {
+    const name = c.handle || c.name || c.senderId || 'Unknown';
+    const initial = name.charAt(0).toUpperCase();
+    const lastMsg = c.messages?.[c.messages.length - 1];
+    const preview = lastMsg ? (lastMsg.isVoiceMemo ? '🎤 Voice memo' : truncate(lastMsg.content, 38)) : 'No messages';
+    const time = lastMsg?.timestamp ? relativeTime(lastMsg.timestamp) : '';
+
+    const tags = [];
+    tags.push(stageBadge(c.stage));
+    if (c.aiPaused) tags.push(`<span class="badge badge-paused">Paused</span>`);
+    if (c.callBooked) tags.push(`<span class="badge badge-booked">✓ Booked</span>`);
+    if (c.voiceMemoSent) tags.push(`<span class="badge" style="background:#f5f3ff;color:#7c3aed">🎤</span>`);
+
+    const isActive = c.senderId === activeConvoId;
+
+    return `
+    <div class="convo-item ${isActive ? 'active' : ''}" onclick="selectConvo('${c.senderId}')">
+      <div class="convo-row">
+        <div class="convo-avatar">${initial}</div>
+        <div class="convo-info">
+          <div class="convo-name-row">
+            <span class="convo-name">@${name}</span>
+            <span class="convo-time">${time}</span>
+          </div>
+          <div class="convo-preview">${escapeHtml(preview)}</div>
+          <div class="convo-tags">${tags.join('')}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderChat(senderId) {
+  const convo = conversations[senderId];
+  if (!convo) return;
+
+  const chatArea = document.getElementById('chat-area');
+  const name = convo.handle || convo.name || senderId;
+  const isPaused = convo.aiPaused;
+
+  const pausedBanner = isPaused ? `
+    <div class="paused-banner">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+      </svg>
+      AI is paused for this conversation. You're in manual mode.
+    </div>` : '';
+
+  const messages = (convo.messages || []).map((msg, i) => {
+    const role = msg.role;
+    const isVoice = msg.isVoiceMemo;
+    const time = msg.timestamp ? formatTime(msg.timestamp) : '';
+    const isManual = msg.manual;
+
+    if (isVoice) {
+      const url = msg.audioUrl || '';
+      return `
+      <div class="msg-wrapper assistant">
+        <div class="voice-memo-player">
+          <div class="voice-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#18a34a" stroke-width="2">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </div>
+          <div>
+            <div class="voice-label">Voice Memo</div>
+            ${url ? `<audio controls style="width:160px;height:28px;margin-top:4px;"><source src="${url}" type="audio/ogg"><source src="${url}" type="audio/mpeg"></audio>` : '<div class="voice-sub">Sent</div>'}
+          </div>
+        </div>
+        <div class="msg-meta"><span class="msg-time">${time}</span></div>
+      </div>`;
+    }
+
+    const ratingClass = msg.rating === 'up' ? 'rated-up' : msg.rating === 'down' ? 'rated-down' : '';
+
+    return `
+    <div class="msg-wrapper ${role}">
+      <div class="msg-bubble ${isManual ? 'manual' : ''}">${escapeHtml(msg.content)}</div>
+      <div class="msg-meta">
+        <span class="msg-time">${time}${isManual ? ' · Manual' : ''}</span>
+        ${role === 'assistant' ? `
+        <div class="rating-btns">
+          <button class="rating-btn ${msg.rating === 'up' ? 'rated-up' : ''}" onclick="rateMsg('${senderId}', ${i}, 'up')">👍</button>
+          <button class="rating-btn ${msg.rating === 'down' ? 'rated-down' : ''}" onclick="rateMsg('${senderId}', ${i}, 'down')">👎</button>
+        </div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  chatArea.innerHTML = `
+    <div class="chat-header">
+      <div class="chat-lead-name">@${escapeHtml(name)}</div>
+      ${stageBadge(convo.stage)}
+      <div class="chat-actions">
+        <button class="btn ${isPaused ? 'btn-accent' : 'btn-outline'}" onclick="togglePause('${senderId}')">
+          ${isPaused ? '▶ Resume AI' : '⏸ Pause AI'}
+        </button>
+        ${convo.stage !== 'disqualified' ? `<button class="btn btn-danger" onclick="disqualify('${senderId}')">Disqualify</button>` : ''}
+        ${!convo.callBooked ? `<button class="btn btn-outline" onclick="bookCall('${senderId}')" style="color:var(--accent);border-color:var(--accent)">✓ Mark Booked</button>` : ''}
+      </div>
+    </div>
+    ${pausedBanner}
+    <div class="chat-messages" id="chat-msgs">${messages || '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px">No messages yet</div>'}</div>
+    <div class="chat-input-area">
+      <div class="chat-input-row">
+        <textarea class="chat-input" id="manual-input" placeholder="Send as James..." rows="1" onkeydown="handleInputKey(event, '${senderId}')"></textarea>
+        <button class="btn btn-accent" onclick="sendManual('${senderId}')">Send</button>
+      </div>
+    </div>`;
+
+  // Scroll to bottom
+  setTimeout(() => {
+    const msgs = document.getElementById('chat-msgs');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+  }, 50);
+}
+
+function renderRightPanel() {
+  // Stats
+  document.getElementById('rp-total').textContent = stats.totalLeads ?? '—';
+  document.getElementById('rp-qualified').textContent = stats.totalQualified ?? '—';
+  document.getElementById('rp-booked').textContent = stats.callsBooked ?? '—';
+  document.getElementById('rp-rate').textContent = stats.conversionRate != null ? stats.conversionRate + '%' : '—';
+
+  // Funnel
+  const convos = Object.values(conversations);
+  const total = convos.length || 1;
+  const stages = ['welcome', 'discovery', 'qualify', 'pitch', 'book', 'disqualified'];
+  const counts = {};
+  stages.forEach((s) => {
+    counts[s] = convos.filter((c) => c.stage === s).length;
+  });
+
+  document.getElementById('funnel-display').innerHTML = stages.map((stage) => {
+    const count = counts[stage];
+    const pct = Math.round((count / total) * 100);
+    return `
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:12px;color:var(--text2)">${capitalize(stage)}</span>
+        <span style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text)">${count}</span>
+      </div>
+      <div class="funnel-bar"><div class="funnel-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderAnalytics() {
+  document.getElementById('an-total').textContent = stats.totalLeads ?? '—';
+  document.getElementById('an-booked').textContent = stats.callsBooked ?? '—';
+  document.getElementById('an-qual').textContent = stats.totalQualified ?? '—';
+  document.getElementById('an-conv').textContent = stats.conversionRate != null ? stats.conversionRate + '%' : '—';
+
+  const convos = Object.values(conversations);
+  const total = convos.length || 1;
+  const stages = [
+    { key: 'welcome', label: 'Welcome', color: '#0ea5e9' },
+    { key: 'discovery', label: 'Discovery', color: '#f59e0b' },
+    { key: 'qualify', label: 'Qualify', color: '#f97316' },
+    { key: 'pitch', label: 'Pitch', color: '#6366f1' },
+    { key: 'book', label: 'Book', color: '#18a34a' },
+    { key: 'disqualified', label: 'Disqualified', color: '#dc2626' },
+  ];
+
+  document.getElementById('analytics-funnel').innerHTML = stages.map(({ key, label, color }) => {
+    const count = convos.filter((c) => c.stage === key).length;
+    const pct = Math.round((count / total) * 100);
+    return `
+    <div class="funnel-stage-row">
+      <span class="funnel-stage-name">${label}</span>
+      <div class="funnel-stage-bar"><div class="funnel-stage-fill" style="width:${pct}%;background:${color}"></div></div>
+      <span class="funnel-stage-count">${count}</span>
+    </div>`;
+  }).join('');
+
+  // Disq reasons
+  const disqd = convos.filter((c) => c.stage === 'disqualified');
+  document.getElementById('disq-reasons').innerHTML = disqd.length === 0
+    ? '<div style="color:var(--text3);font-size:13px">No disqualified leads yet.</div>'
+    : disqd.map((c) => `<div style="font-size:12.5px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border)">@${escapeHtml(c.handle || c.senderId)} — Disqualified ${c.disqualifiedAt ? relativeTime(c.disqualifiedAt) : ''}</div>`).join('');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ACTIONS
+// ─────────────────────────────────────────────────────────────────────────────
+function selectConvo(senderId) {
+  activeConvoId = senderId;
+  renderSidebar();
+  renderChat(senderId);
+
+  // Update training tab with this convo's responses
+  const convo = conversations[senderId];
+  if (convo) {
+    const aiMsgs = (convo.messages || []).filter((m) => m.role === 'assistant' && !m.isVoiceMemo);
+    document.getElementById('training-responses').innerHTML = aiMsgs.length === 0
+      ? '<div style="color:var(--text3);font-size:13px">No AI responses yet.</div>'
+      : aiMsgs.map((msg, i) => {
+        const realIdx = (convo.messages || []).indexOf(msg);
+        return `
+        <div class="training-response" style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+          <div class="training-convo-header">@${escapeHtml(convo.handle || senderId)} · ${formatTime(msg.timestamp)}</div>
+          <div class="training-msg">${escapeHtml(msg.content)}</div>
+          <div class="training-actions">
+            <button class="rating-btn ${msg.rating === 'up' ? 'rated-up' : ''}" onclick="rateMsg('${senderId}', ${realIdx}, 'up')">👍 Good</button>
+            <button class="rating-btn ${msg.rating === 'down' ? 'rated-down' : ''}" onclick="rateMsg('${senderId}', ${realIdx}, 'down')">👎 Bad</button>
+          </div>
+        </div>`;
+      }).join('');
+  }
+}
+
+function applyMasterAiUI() {
+  const btn = document.getElementById('master-ai-btn');
+  const checkbox = document.getElementById('master-ai-checkbox');
+  const label = document.getElementById('master-ai-label');
+  const banner = document.getElementById('master-disabled-banner');
+  const layout = document.querySelector('.layout');
+
+  checkbox.checked = masterAiEnabled;
+  label.textContent = masterAiEnabled ? 'AI ON' : 'AI OFF';
+  btn.classList.toggle('enabled', masterAiEnabled);
+  banner.classList.toggle('visible', !masterAiEnabled);
+  layout.classList.toggle('banner-visible', !masterAiEnabled);
+}
+
+async function toggleMasterAi() {
+  const newState = !masterAiEnabled;
+  try {
+    const res = await fetch('/api/master-ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: newState }),
+    });
+    const data = await res.json();
+    masterAiEnabled = data.masterAiEnabled;
+    applyMasterAiUI();
+    toast(masterAiEnabled ? 'AI is now ON — responses enabled' : 'AI is now OFF — listening only', masterAiEnabled ? 'success' : '');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function togglePause(senderId) {
+  try {
+    const res = await fetch(`/api/pause/${senderId}`, { method: 'POST' });
+    const data = await res.json();
+    toast(data.aiPaused ? 'AI paused for this conversation' : 'AI resumed', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function pauseAll() {
+  try {
+    await fetch('/api/pause-all', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pause: true }) });
+    toast('All AI paused', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function toggleAway(checked) {
+  awayMode = checked;
+  try {
+    await fetch('/api/pause-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pause: checked }),
+    });
+    toast(checked ? 'Away mode on — AI paused for all' : 'Away mode off — AI resumed', checked ? 'warn' : 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function sendManual(senderId) {
+  const input = document.getElementById('manual-input');
+  const message = input?.value?.trim();
+  if (!message) return;
+
+  input.value = '';
+  try {
+    const res = await fetch(`/api/send/${senderId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    });
+    if (!res.ok) throw new Error('Send failed');
+    toast('Message sent', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+function handleInputKey(event, senderId) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendManual(senderId);
+  }
+}
+
+async function bookCall(senderId) {
+  if (!confirm('Mark this lead as call booked?')) return;
+  try {
+    await fetch(`/api/book/${senderId}`, { method: 'POST' });
+    toast('Marked as booked', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function disqualify(senderId) {
+  if (!confirm('Disqualify this lead?')) return;
+  try {
+    await fetch(`/api/disqualify/${senderId}`, { method: 'POST' });
+    toast('Lead disqualified', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function rateMsg(senderId, messageIndex, rating) {
+  try {
+    await fetch('/api/train', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senderId, messageIndex, rating }),
+    });
+    // Update locally
+    if (conversations[senderId]?.messages[messageIndex]) {
+      conversations[senderId].messages[messageIndex].rating = rating;
+      if (activeConvoId === senderId) renderChat(senderId);
+    }
+    toast(rating === 'up' ? 'Thumbs up logged' : 'Thumbs down logged', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function saveCustomRules() {
+  const rules = document.getElementById('custom-rules-input').value.trim();
+  try {
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customRules: rules }),
+    });
+    toast('Custom rules saved', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function saveSettings() {
+  const body = {
+    calendlyLink: document.getElementById('s-calendly').value.trim(),
+    bankrollMinimum: parseInt(document.getElementById('s-bankroll').value) || 5000,
+    disqualificationTriggers: document.getElementById('s-disq-triggers').value,
+    voiceMemosEnabled: document.getElementById('s-voice-toggle').checked,
+  };
+  try {
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    toast('Settings saved', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function loadSettings() {
+  try {
+    const res = await fetch('/api/settings');
+    const s = await res.json();
+    document.getElementById('s-calendly').value = s.calendlyLink || '';
+    document.getElementById('s-bankroll').value = s.bankrollMinimum || 5000;
+    document.getElementById('s-disq-triggers').value = Array.isArray(s.disqualificationTriggers)
+      ? s.disqualificationTriggers.join(', ')
+      : s.disqualificationTriggers || '';
+    document.getElementById('s-voice-toggle').checked = s.voiceMemosEnabled !== false;
+    if (s.customRules) {
+      document.getElementById('custom-rules-input').value = s.customRules;
+    }
+    if (typeof s.masterAiEnabled === 'boolean') {
+      masterAiEnabled = s.masterAiEnabled;
+      applyMasterAiUI();
+    }
+  } catch (e) {
+    console.error('Failed to load settings:', e);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB NAVIGATION
+// ─────────────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach((t) => t.classList.remove('active'));
+
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function setFilter(filter, el) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-tab').forEach((t) => t.classList.remove('active'));
+  el.classList.add('active');
+  renderSidebar();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+function stageBadge(stage) {
+  const labels = {
+    welcome: 'Welcome',
+    discovery: 'Discovery',
+    qualify: 'Qualify',
+    pitch: 'Pitch',
+    book: '✓ Booked',
+    disqualified: 'Disqualified',
+  };
+  const s = stage || 'welcome';
+  return `<span class="badge badge-${s}">${labels[s] || s}</span>`;
+}
+
+function toast(msg, type = '') {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function truncate(str, len) {
+  if (!str) return '';
+  return str.length > len ? str.slice(0, len) + '…' : str;
+}
+
+function capitalize(s) {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+}
+
+function relativeTime(iso) {
+  if (!iso) return '';
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m`;
+  if (hours < 24) return `${hours}h`;
+  return `${days}d`;
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────────────────
+connectWS();
+loadSettings();
+</script>
+</body>
+</html>

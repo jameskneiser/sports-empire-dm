@@ -1,0 +1,81 @@
+'use strict';
+
+const axios = require('axios');
+
+const GRAPH_API_BASE = 'https://graph.facebook.com/v21.0';
+
+function getHeaders() {
+  return {
+    Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+    'Content-Type': 'application/json',
+  };
+}
+
+async function sendTextMessage(recipientId, text) {
+  const url = `${GRAPH_API_BASE}/${process.env.INSTAGRAM_ACCOUNT_ID}/messages`;
+
+  try {
+    const response = await axios.post(
+      url,
+      {
+        recipient: { id: recipientId },
+        message: { text },
+      },
+      { headers: getHeaders() },
+    );
+    console.log(`[meta] Sent text to ${recipientId}:`, response.data);
+    return response.data;
+  } catch (err) {
+    const errData = err.response?.data || err.message;
+    console.error(`[meta] Failed to send text to ${recipientId}:`, JSON.stringify(errData));
+    throw err;
+  }
+}
+
+async function sendAudioMessage(recipientId, audioUrl) {
+  const url = `${GRAPH_API_BASE}/${process.env.INSTAGRAM_ACCOUNT_ID}/messages`;
+
+  try {
+    const response = await axios.post(
+      url,
+      {
+        recipient: { id: recipientId },
+        message: {
+          attachment: {
+            type: 'audio',
+            payload: {
+              url: audioUrl,
+              is_reusable: false,
+            },
+          },
+        },
+      },
+      { headers: getHeaders() },
+    );
+    console.log(`[meta] Sent audio to ${recipientId}:`, response.data);
+    return response.data;
+  } catch (err) {
+    const errData = err.response?.data || err.message;
+    console.error(`[meta] Failed to send audio to ${recipientId}:`, JSON.stringify(errData));
+    throw err;
+  }
+}
+
+// Get user profile (name, username) from Instagram
+async function getUserProfile(userId) {
+  try {
+    const url = `${GRAPH_API_BASE}/${userId}`;
+    const response = await axios.get(url, {
+      params: {
+        fields: 'name,username',
+        access_token: process.env.META_ACCESS_TOKEN,
+      },
+    });
+    return response.data;
+  } catch (err) {
+    console.warn(`[meta] Could not fetch profile for ${userId}:`, err.response?.data?.error?.message || err.message);
+    return null;
+  }
+}
+
+module.exports = { sendTextMessage, sendAudioMessage, getUserProfile };
