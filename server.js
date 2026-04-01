@@ -92,13 +92,14 @@ async function handleInboundMessage(senderId, messageText) {
   // Get or create conversation
   const convo = storage.getOrCreate(senderId);
 
-  // Try to fetch profile if we don't have it yet
+  // Fetch profile on first message — username, name, and profile picture
   if (!convo.handle) {
     const profile = await meta.getUserProfile(senderId).catch(() => null);
     if (profile) {
       storage.update(senderId, {
         handle: profile.username || profile.name || senderId,
         name: profile.name || null,
+        profilePic: profile.profile_pic || null,
       });
     }
   }

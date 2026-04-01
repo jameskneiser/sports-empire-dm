@@ -375,6 +375,37 @@
     color: var(--text2);
     flex-shrink: 0;
     font-family: var(--font-mono);
+    overflow: hidden;
+  }
+
+  .convo-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .chat-header-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e8e8e6, #d0d0cc);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text2);
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    overflow: hidden;
+  }
+
+  .chat-header-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
   }
 
   .convo-info { flex: 1; min-width: 0; }
@@ -1450,7 +1481,6 @@ function renderSidebar() {
 
   list.innerHTML = filtered.map((c) => {
     const name = c.handle || c.name || c.senderId || 'Unknown';
-    const initial = name.charAt(0).toUpperCase();
     const lastMsg = c.messages?.[c.messages.length - 1];
     const preview = lastMsg ? (lastMsg.isVoiceMemo ? '🎤 Voice memo' : truncate(lastMsg.content, 38)) : 'No messages';
     const time = lastMsg?.timestamp ? relativeTime(lastMsg.timestamp) : '';
@@ -1466,10 +1496,10 @@ function renderSidebar() {
     return `
     <div class="convo-item ${isActive ? 'active' : ''}" onclick="selectConvo('${c.senderId}')">
       <div class="convo-row">
-        <div class="convo-avatar">${initial}</div>
+        ${avatarHtml(c)}
         <div class="convo-info">
           <div class="convo-name-row">
-            <span class="convo-name">@${name}</span>
+            <span class="convo-name">@${escapeHtml(name)}</span>
             <span class="convo-time">${time}</span>
           </div>
           <div class="convo-preview">${escapeHtml(preview)}</div>
@@ -1542,6 +1572,7 @@ function renderChat(senderId) {
 
   chatArea.innerHTML = `
     <div class="chat-header">
+      ${avatarHtml(convo, 'lg')}
       <div class="chat-lead-name">@${escapeHtml(name)}</div>
       ${stageBadge(convo.stage)}
       <div class="chat-actions">
@@ -1866,6 +1897,17 @@ function setFilter(filter, el) {
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
+
+function avatarHtml(convo, size = 'sm') {
+  const name = convo.handle || convo.name || convo.senderId || '?';
+  const initial = name.charAt(0).toUpperCase();
+  const cls = size === 'lg' ? 'chat-header-avatar' : 'convo-avatar';
+  if (convo.profilePic) {
+    return `<div class="${cls}"><img src="${escapeHtml(convo.profilePic)}" alt="${escapeHtml(initial)}" onerror="this.parentElement.innerHTML='${initial}'"></div>`;
+  }
+  return `<div class="${cls}">${initial}</div>`;
+}
+
 function stageBadge(stage) {
   const labels = {
     welcome: 'Welcome',

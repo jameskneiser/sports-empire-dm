@@ -61,13 +61,13 @@ async function sendAudioMessage(recipientId, audioUrl) {
   }
 }
 
-// Get user profile (name, username) from Instagram
+// Get user profile (name, username, profile_pic) from Instagram
 async function getUserProfile(userId) {
   try {
     const url = `${GRAPH_API_BASE}/${userId}`;
     const response = await axios.get(url, {
       params: {
-        fields: 'name,username',
+        fields: 'name,username,profile_pic',
         access_token: process.env.META_ACCESS_TOKEN,
       },
     });
