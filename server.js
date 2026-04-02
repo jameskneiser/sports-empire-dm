@@ -5,6 +5,10 @@ require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const path = require('path');
+const fs = require('fs');
+
+// Ensure uploads directory exists (Railway containers start with a clean filesystem)
+fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
 
 const storage = require('./src/storage');
 const meta = require('./src/meta');
