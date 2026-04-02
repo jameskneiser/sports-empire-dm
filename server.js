@@ -106,39 +106,17 @@ app.get('/auth/callback', async (req, res) => {
       },
     });
 
-    const { access_token: userToken } = tokenRes.data;
+    const { access_token } = tokenRes.data;
     console.log('[auth] Received user access token from OAuth exchange');
+    console.log('[auth] ACCESS_TOKEN:', access_token);
 
-    // Fetch connected Pages and their Page access tokens
-    const pagesRes = await axios.get('https://graph.facebook.com/me/accounts', {
-      params: { access_token: userToken },
-    });
-
-    const pages = pagesRes.data?.data || [];
-    console.log(`[auth] Found ${pages.length} connected page(s):`, pages.map(p => `${p.name} (${p.id})`));
-
-    if (pages.length === 0) {
-      return res.status(400).send('No Facebook Pages found connected to this account. Make sure your Instagram is linked to a Facebook Page.');
-    }
-
-    // Use the first page
-    const page = pages[0];
-    const pageToken = page.access_token;
-    const pageId = page.id;
-
-    console.log(`[auth] Using Page: ${page.name} (${pageId})`);
-    console.log('[auth] PAGE_ACCESS_TOKEN:', pageToken);
-
-    // Update in-memory tokens immediately
-    process.env.PAGE_ACCESS_TOKEN = pageToken;
-    process.env.FACEBOOK_PAGE_ID  = pageId;
-    console.log('[auth] In-memory PAGE_ACCESS_TOKEN and FACEBOOK_PAGE_ID updated');
+    // Update in-memory token immediately
+    process.env.META_ACCESS_TOKEN = access_token;
+    console.log('[auth] In-memory META_ACCESS_TOKEN updated');
 
     res.send(`Authentication successful.<br><br>
-      <b>Page:</b> ${page.name}<br>
-      <b>Page ID:</b> ${pageId}<br><br>
-      Copy these into your Railway environment variables:<br>
-      <pre>PAGE_ACCESS_TOKEN=${pageToken}\nFACEBOOK_PAGE_ID=${pageId}</pre>
+      Copy this into your Railway environment variables:<br>
+      <pre>META_ACCESS_TOKEN=${access_token}</pre>
     `);
   } catch (err) {
     const detail = err.response?.data?.error?.message || err.message;
