@@ -398,7 +398,8 @@ async function start() {
   // Token exchange disabled — already using a long-lived Instagram token
   // await meta.exchangeToken();
 
-  server.listen(PORT, () => {
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`[startup] Listening on 0.0.0.0:${PORT}`);
     console.log('');
     console.log('╔═══════════════════════════════════════════════════╗');
     console.log('║         SPORTS EMPIRE DM AUTOMATION               ║');
