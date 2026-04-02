@@ -272,6 +272,10 @@ app.post('/api/send/:senderId', async (req, res) => {
     ws.broadcastUpdate(senderId);
     res.json({ success: true });
   } catch (err) {
+    const apiBody = err.response?.data;
+    console.error('[/api/send] Error sending message to', senderId);
+    console.error('[/api/send] Message:', err.message);
+    if (apiBody) console.error('[/api/send] Instagram API response:', JSON.stringify(apiBody, null, 2));
     res.status(500).json({ error: err.message });
   }
 });
