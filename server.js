@@ -15,6 +15,7 @@ try {
   process.exit(1);
 }
 
+const axios = require('axios');
 const storage = require('./src/storage');
 const meta = require('./src/meta');
 const claude = require('./src/claude');
@@ -95,8 +96,6 @@ app.get('/auth/callback', async (req, res) => {
   const redirectUri = `${publicUrl}/auth/callback`;
 
   try {
-    const axios = require('axios');
-
     // Exchange code for short-lived token
     const tokenRes = await axios.get('https://graph.facebook.com/oauth/access_token', {
       params: {
@@ -111,7 +110,6 @@ app.get('/auth/callback', async (req, res) => {
     console.log('[auth] Received user access token from OAuth exchange');
 
     // Fetch connected Pages and their Page access tokens
-    const axios = require('axios');
     const pagesRes = await axios.get('https://graph.facebook.com/me/accounts', {
       params: { access_token: userToken },
     });
