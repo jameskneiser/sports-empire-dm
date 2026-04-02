@@ -16,7 +16,8 @@ function getHeaders() {
 }
 
 async function sendTextMessage(recipientId, text) {
-  const url = `${GRAPH_API_BASE}/me/messages`;
+  const igUserId = process.env.INSTAGRAM_ACCOUNT_ID;
+  const url = `${GRAPH_API_BASE}/${igUserId}/messages`;
 
   try {
     const response = await axios.post(
@@ -35,6 +36,7 @@ async function sendTextMessage(recipientId, text) {
     const igError = errBody?.error;
     console.error(`[meta] sendTextMessage failed — HTTP ${status ?? 'N/A'}`);
     console.error(`[meta] recipient: ${recipientId}`);
+    console.error(`[meta] ig user id: ${process.env.INSTAGRAM_ACCOUNT_ID}`);
     console.error(`[meta] token present: ${!!process.env.META_ACCESS_TOKEN}`);
     if (igError) {
       console.error(`[meta] Instagram error code: ${igError.code}`);
@@ -49,7 +51,8 @@ async function sendTextMessage(recipientId, text) {
 }
 
 async function sendAudioMessage(recipientId, audioUrl) {
-  const url = `${GRAPH_API_BASE}/me/messages`;
+  const igUserId = process.env.INSTAGRAM_ACCOUNT_ID;
+  const url = `${GRAPH_API_BASE}/${igUserId}/messages`;
 
   try {
     const response = await axios.post(
