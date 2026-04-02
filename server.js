@@ -166,7 +166,10 @@ app.post('/webhook', async (req, res) => {
   }
 
   for (const entry of body.entry || []) {
+    console.log(`[webhook] entry.id: ${entry.id}`);
     for (const event of entry.messaging || []) {
+      console.log(`[webhook] event.sender.id: ${event.sender?.id} | event.recipient.id: ${event.recipient?.id}`);
+
       // Skip echo messages (sent by the page)
       if (event.message?.is_echo) continue;
 
