@@ -52,6 +52,9 @@ ws.init(server, isMasterEnabled);
 // ─────────────────────────────────────────────────────────────────────────────
 
 // GET /webhook — verify token handshake
+// Health check for Railway
+app.get('/', (req, res) => res.sendStatus(200));
+
 app.get('/webhook', (req, res) => {
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
