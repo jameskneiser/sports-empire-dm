@@ -30,8 +30,20 @@ async function sendTextMessage(recipientId, text) {
     console.log(`[meta] Sent text to ${recipientId}:`, response.data);
     return response.data;
   } catch (err) {
-    const errData = err.response?.data || err.message;
-    console.error(`[meta] Failed to send text to ${recipientId}:`, JSON.stringify(errData));
+    const status  = err.response?.status;
+    const errBody = err.response?.data;
+    const igError = errBody?.error;
+    console.error(`[meta] sendTextMessage failed — HTTP ${status ?? 'N/A'}`);
+    console.error(`[meta] recipient: ${recipientId}`);
+    console.error(`[meta] token present: ${!!process.env.META_ACCESS_TOKEN}`);
+    if (igError) {
+      console.error(`[meta] Instagram error code: ${igError.code}`);
+      console.error(`[meta] Instagram error type: ${igError.type}`);
+      console.error(`[meta] Instagram error message: ${igError.message}`);
+      console.error(`[meta] Instagram error fbtrace_id: ${igError.fbtrace_id}`);
+    } else {
+      console.error(`[meta] Raw response body:`, JSON.stringify(errBody ?? err.message, null, 2));
+    }
     throw err;
   }
 }
