@@ -72,7 +72,7 @@ app.get('/auth', (req, res) => {
   const params = new URLSearchParams({
     client_id:     appId,
     redirect_uri:  redirectUri,
-    scope:         'pages_messaging,pages_read_engagement,instagram_manage_messages,instagram_basic',
+    scope:         'instagram_manage_messages,instagram_basic',
     response_type: 'code',
   });
 
