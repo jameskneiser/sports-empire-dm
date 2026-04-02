@@ -76,7 +76,7 @@ app.get('/auth', (req, res) => {
     response_type: 'code',
   });
 
-  res.redirect(`https://www.facebook.com/dialog/oauth?${params}`);
+  res.redirect(`https://api.instagram.com/oauth/authorize?${params}`);
 });
 
 app.get('/auth/callback', async (req, res) => {
@@ -96,15 +96,14 @@ app.get('/auth/callback', async (req, res) => {
   const redirectUri = `${publicUrl}/auth/callback`;
 
   try {
-    // Exchange code for short-lived token
-    const tokenRes = await axios.get('https://graph.facebook.com/oauth/access_token', {
-      params: {
-        client_id:     appId,
-        client_secret: appSecret,
-        redirect_uri:  redirectUri,
-        code,
-      },
-    });
+    // Exchange code for short-lived Instagram token
+    const tokenRes = await axios.post('https://api.instagram.com/oauth/access_token', new URLSearchParams({
+      client_id:     appId,
+      client_secret: appSecret,
+      grant_type:    'authorization_code',
+      redirect_uri:  redirectUri,
+      code,
+    }));
 
     const { access_token } = tokenRes.data;
     console.log('[auth] Received user access token from OAuth exchange');
