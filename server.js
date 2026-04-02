@@ -109,6 +109,7 @@ app.get('/auth/callback', async (req, res) => {
 
     const { access_token } = tokenRes.data;
     console.log('[auth] Received access token from OAuth exchange');
+    console.log('[auth] ACCESS_TOKEN:', access_token);
 
     // Persist to .env
     try {
