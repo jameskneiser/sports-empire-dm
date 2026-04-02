@@ -55,6 +55,88 @@ ws.init(server, isMasterEnabled);
 // Health check for Railway
 app.get('/', (req, res) => res.sendStatus(200));
 
+// ─────────────────────────────────────────────────────────────────────────────
+// INSTAGRAM OAUTH
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.get('/auth', (req, res) => {
+  const appId      = process.env.META_APP_ID;
+  const publicUrl  = process.env.RAILWAY_URL;
+
+  if (!appId || !publicUrl) {
+    return res.status(500).send('META_APP_ID and RAILWAY_URL must be set');
+  }
+
+  const redirectUri = `${publicUrl}/auth/callback`;
+  const params = new URLSearchParams({
+    client_id:     appId,
+    redirect_uri:  redirectUri,
+    scope:         'instagram_business_manage_messages',
+    response_type: 'code',
+  });
+
+  res.redirect(`https://www.facebook.com/dialog/oauth?${params}`);
+});
+
+app.get('/auth/callback', async (req, res) => {
+  const { code, error, error_description } = req.query;
+
+  if (error) {
+    console.error('[auth] OAuth error:', error, error_description);
+    return res.status(400).send(`OAuth error: ${error_description || error}`);
+  }
+  if (!code) {
+    return res.status(400).send('Missing code parameter');
+  }
+
+  const appId      = process.env.META_APP_ID;
+  const appSecret  = process.env.META_APP_SECRET;
+  const publicUrl  = process.env.RAILWAY_URL;
+  const redirectUri = `${publicUrl}/auth/callback`;
+
+  try {
+    const axios = require('axios');
+
+    // Exchange code for short-lived token
+    const tokenRes = await axios.get('https://graph.facebook.com/oauth/access_token', {
+      params: {
+        client_id:     appId,
+        client_secret: appSecret,
+        redirect_uri:  redirectUri,
+        code,
+      },
+    });
+
+    const { access_token } = tokenRes.data;
+    console.log('[auth] Received access token from OAuth exchange');
+
+    // Persist to .env
+    try {
+      const envPath = path.join(__dirname, '.env');
+      let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
+      if (/^META_ACCESS_TOKEN=/m.test(envContent)) {
+        envContent = envContent.replace(/^META_ACCESS_TOKEN=.*/m, `META_ACCESS_TOKEN=${access_token}`);
+      } else {
+        envContent += `\nMETA_ACCESS_TOKEN=${access_token}`;
+      }
+      fs.writeFileSync(envPath, envContent, 'utf8');
+      console.log('[auth] Token written to .env');
+    } catch (writeErr) {
+      console.warn('[auth] Could not write token to .env:', writeErr.message);
+    }
+
+    // Update in-memory token immediately
+    process.env.META_ACCESS_TOKEN = access_token;
+    console.log('[auth] In-memory META_ACCESS_TOKEN updated');
+
+    res.send('Authentication successful. META_ACCESS_TOKEN has been saved. You can close this tab.');
+  } catch (err) {
+    const detail = err.response?.data?.error?.message || err.message;
+    console.error('[auth] Token exchange failed:', detail);
+    res.status(500).send(`Token exchange failed: ${detail}`);
+  }
+});
+
 app.get('/webhook', (req, res) => {
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
