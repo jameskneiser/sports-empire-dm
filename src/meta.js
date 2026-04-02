@@ -16,7 +16,7 @@ function getHeaders() {
 }
 
 async function sendTextMessage(recipientId, text) {
-  const url = `${GRAPH_API_BASE}/${process.env.INSTAGRAM_ACCOUNT_ID}/messages`;
+  const url = `${GRAPH_API_BASE}/me/messages`;
 
   try {
     const response = await axios.post(
@@ -49,7 +49,7 @@ async function sendTextMessage(recipientId, text) {
 }
 
 async function sendAudioMessage(recipientId, audioUrl) {
-  const url = `${GRAPH_API_BASE}/${process.env.INSTAGRAM_ACCOUNT_ID}/messages`;
+  const url = `${GRAPH_API_BASE}/me/messages`;
 
   try {
     const response = await axios.post(
