@@ -379,8 +379,8 @@ app.get('/api/stats', (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 async function start() {
-  // Exchange short-lived token before accepting any traffic
-  await meta.exchangeToken();
+  // Token exchange disabled — already using a long-lived Instagram token
+  // await meta.exchangeToken();
 
   server.listen(PORT, () => {
     console.log('');
