@@ -8,7 +8,12 @@ const path = require('path');
 const fs = require('fs');
 
 // Ensure uploads directory exists (Railway containers start with a clean filesystem)
-fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
+try {
+  fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
+} catch (err) {
+  console.error('[startup] Failed to create uploads directory:', err.message);
+  process.exit(1);
+}
 
 const storage = require('./src/storage');
 const meta = require('./src/meta');
@@ -408,4 +413,10 @@ async function start() {
   });
 }
 
-start();
+start().catch((err) => {
+  console.error('[startup] FATAL ERROR — server failed to start');
+  console.error('[startup] Message:', err.message);
+  console.error('[startup] Stack:', err.stack);
+  if (err.code) console.error('[startup] Error code:', err.code);
+  process.exit(1);
+});
