@@ -15,9 +15,16 @@ function getHeaders() {
   };
 }
 
+function getPageHeaders() {
+  return {
+    Authorization: `Bearer ${process.env.PAGE_ACCESS_TOKEN}`,
+    'Content-Type': 'application/json',
+  };
+}
+
 async function sendTextMessage(recipientId, text) {
-  const igUserId = process.env.INSTAGRAM_ACCOUNT_ID;
-  const url = `${GRAPH_API_BASE}/${igUserId}/messages`;
+  const pageId = process.env.FACEBOOK_PAGE_ID;
+  const url = `${GRAPH_API_BASE}/${pageId}/messages`;
 
   try {
     const response = await axios.post(
@@ -26,7 +33,7 @@ async function sendTextMessage(recipientId, text) {
         recipient: { id: recipientId },
         message: { text },
       },
-      { headers: getHeaders() },
+      { headers: getPageHeaders() },
     );
     console.log(`[meta] Sent text to ${recipientId}:`, response.data);
     return response.data;
@@ -36,8 +43,8 @@ async function sendTextMessage(recipientId, text) {
     const igError = errBody?.error;
     console.error(`[meta] sendTextMessage failed — HTTP ${status ?? 'N/A'}`);
     console.error(`[meta] recipient: ${recipientId}`);
-    console.error(`[meta] ig user id: ${process.env.INSTAGRAM_ACCOUNT_ID}`);
-    console.error(`[meta] token present: ${!!process.env.META_ACCESS_TOKEN}`);
+    console.error(`[meta] page id: ${process.env.FACEBOOK_PAGE_ID}`);
+    console.error(`[meta] page token present: ${!!process.env.PAGE_ACCESS_TOKEN}`);
     if (igError) {
       console.error(`[meta] Instagram error code: ${igError.code}`);
       console.error(`[meta] Instagram error type: ${igError.type}`);
@@ -51,8 +58,8 @@ async function sendTextMessage(recipientId, text) {
 }
 
 async function sendAudioMessage(recipientId, audioUrl) {
-  const igUserId = process.env.INSTAGRAM_ACCOUNT_ID;
-  const url = `${GRAPH_API_BASE}/${igUserId}/messages`;
+  const pageId = process.env.FACEBOOK_PAGE_ID;
+  const url = `${GRAPH_API_BASE}/${pageId}/messages`;
 
   try {
     const response = await axios.post(
@@ -69,7 +76,7 @@ async function sendAudioMessage(recipientId, audioUrl) {
           },
         },
       },
-      { headers: getHeaders() },
+      { headers: getPageHeaders() },
     );
     console.log(`[meta] Sent audio to ${recipientId}:`, response.data);
     return response.data;

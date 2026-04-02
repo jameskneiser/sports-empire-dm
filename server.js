@@ -71,7 +71,7 @@ app.get('/auth', (req, res) => {
   const params = new URLSearchParams({
     client_id:     appId,
     redirect_uri:  redirectUri,
-    scope:         'instagram_manage_messages',
+    scope:         'pages_messaging,pages_read_engagement,instagram_manage_messages,instagram_basic',
     response_type: 'code',
   });
 
@@ -107,30 +107,41 @@ app.get('/auth/callback', async (req, res) => {
       },
     });
 
-    const { access_token } = tokenRes.data;
-    console.log('[auth] Received access token from OAuth exchange');
-    console.log('[auth] ACCESS_TOKEN:', access_token);
+    const { access_token: userToken } = tokenRes.data;
+    console.log('[auth] Received user access token from OAuth exchange');
 
-    // Persist to .env
-    try {
-      const envPath = path.join(__dirname, '.env');
-      let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
-      if (/^META_ACCESS_TOKEN=/m.test(envContent)) {
-        envContent = envContent.replace(/^META_ACCESS_TOKEN=.*/m, `META_ACCESS_TOKEN=${access_token}`);
-      } else {
-        envContent += `\nMETA_ACCESS_TOKEN=${access_token}`;
-      }
-      fs.writeFileSync(envPath, envContent, 'utf8');
-      console.log('[auth] Token written to .env');
-    } catch (writeErr) {
-      console.warn('[auth] Could not write token to .env:', writeErr.message);
+    // Fetch connected Pages and their Page access tokens
+    const axios = require('axios');
+    const pagesRes = await axios.get('https://graph.facebook.com/me/accounts', {
+      params: { access_token: userToken },
+    });
+
+    const pages = pagesRes.data?.data || [];
+    console.log(`[auth] Found ${pages.length} connected page(s):`, pages.map(p => `${p.name} (${p.id})`));
+
+    if (pages.length === 0) {
+      return res.status(400).send('No Facebook Pages found connected to this account. Make sure your Instagram is linked to a Facebook Page.');
     }
 
-    // Update in-memory token immediately
-    process.env.META_ACCESS_TOKEN = access_token;
-    console.log('[auth] In-memory META_ACCESS_TOKEN updated');
+    // Use the first page
+    const page = pages[0];
+    const pageToken = page.access_token;
+    const pageId = page.id;
 
-    res.send('Authentication successful. META_ACCESS_TOKEN has been saved. You can close this tab.');
+    console.log(`[auth] Using Page: ${page.name} (${pageId})`);
+    console.log('[auth] PAGE_ACCESS_TOKEN:', pageToken);
+
+    // Update in-memory tokens immediately
+    process.env.PAGE_ACCESS_TOKEN = pageToken;
+    process.env.FACEBOOK_PAGE_ID  = pageId;
+    console.log('[auth] In-memory PAGE_ACCESS_TOKEN and FACEBOOK_PAGE_ID updated');
+
+    res.send(`Authentication successful.<br><br>
+      <b>Page:</b> ${page.name}<br>
+      <b>Page ID:</b> ${pageId}<br><br>
+      Copy these into your Railway environment variables:<br>
+      <pre>PAGE_ACCESS_TOKEN=${pageToken}\nFACEBOOK_PAGE_ID=${pageId}</pre>
+    `);
   } catch (err) {
     const detail = err.response?.data?.error?.message || err.message;
     console.error('[auth] Token exchange failed:', detail);
